@@ -20,9 +20,21 @@ function rewriteIndex(options) {
   };
 }
 
+async function redirectWithTrailingSlash(req, res, next) {
+  if (req.path === "/" && req.originalUrl.slice(-1) !== "/") {
+    res.redirect(301, req.originalUrl + "/");
+  } else {
+    await next();
+  }
+}
+
 module.exports = function(options) {
   options = options || {};
   options.graphqlEndpoint = options.graphqlEndpoint || "/graphql";
   options.defaultQuery = options.defaultQuery || "";
-  return compose([rewriteIndex(options), serveStatic(__dirname + "/build")]);
+  return compose([
+    redirectWithTrailingSlash,
+    rewriteIndex(options),
+    serveStatic(__dirname + "/build"),
+  ]);
 };
